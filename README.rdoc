@@ -1,0 +1,10 @@
+gem build knife-rackspace-loadbalancer.gemspec
+
+In a scratch directory:
+Gemfile ->
+  gem "knife-rackspace-loadbalancer", :path => "/path/to/gem/file/produced.gem"
+
+bundle install
+bundle exec knife rackspace load balancer list
+bundle exec knife rackspace load balancer show ID
+bundle exec knife rackspace load balancer show ID --resolve-node-names
