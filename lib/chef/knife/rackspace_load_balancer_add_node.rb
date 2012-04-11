@@ -55,6 +55,10 @@ module KnifePlugins
       :long => "--by-search SEARCH",
       :description => "Resolve search against chef server to produce list of nodes to add"
 
+    option :auto_resolve_port,
+      :long => "--auto-resolve-port DEFAULT",
+      :description => "Auto resolve port of node addition with a fallback of DEFAULT if no port exists"
+
     def run
       unless [:all, :except, :only].any? {|target| not config[target].nil?}
         ui.fatal("Must provide a target set of load balancers with --all, --except, or --only")
@@ -75,12 +79,18 @@ module KnifePlugins
       })
 
       nodes = node_ips.map do |ip|
-        {
+        attrs = {
           :address => ip,
           :port => config[:port],
           :condition => config[:condition],
           :weight => config[:weight]
         }
+
+        if config[:auto_resolve_port]
+          attrs[:port] = "Auto resolve [DEFAULT: #{config[:auto_resolve_port]}]"
+        end
+
+        attrs
       end
 
       if nodes.empty?
@@ -118,7 +128,23 @@ module KnifePlugins
         ui.output("Opening #{lb[:name]}")
         balancer = lb_connection.get_load_balancer(lb[:id])
 
-        nodes.each do |node|
+        if config[:auto_resolve_port]
+          nodes_for_balancer = nodes.dup
+
+          default_port = config[:auto_resolve_port]
+          first_node = balancer.list_nodes.first
+
+          port = first_node.nil? ? default_port : first_node[:port]
+          ui.output(ui.color("Auto resolved port to: #{port}", :cyan))
+
+          nodes_for_balancer.each do |nfb|
+            nfb[:port] = port
+          end
+        else
+          nodes_for_balancer = nodes
+        end
+
+        nodes_for_balancer.each do |node|
           ui.output("Adding node #{node[:address]}")
           if balancer.create_node(node)
             ui.output(ui.color("Success", :green))
