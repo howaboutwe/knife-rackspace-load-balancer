@@ -101,7 +101,7 @@ module KnifePlugins
 
       if config[:except]
         except = config[:except].split(",").map(&:to_s)
-        target_load_balancers = target_load_balancers.reject {|lb| exclude.include? lb[:id].to_s}
+        target_load_balancers = target_load_balancers.reject {|lb| except.include? lb[:id].to_s}
       end
 
       if target_load_balancers.empty?
