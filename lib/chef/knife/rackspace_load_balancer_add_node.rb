@@ -91,13 +91,13 @@ module KnifePlugins
       target_load_balancers = lb_connection.list_load_balancers
 
       if config[:only]
-        only = config[:only].split(",")
-        target_load_balancers = target_load_balancers.select {|lb| lb.id == id}
+        only = config[:only].split(",").map(&:to_s)
+        target_load_balancers = target_load_balancers.select {|lb| only.include? lb[:id].to_s}
       end
 
       if config[:except]
-        except = config[:except].split(",")
-        target_load_balancers = target_load_balancers.reject {|lb| lb.id == id}
+        except = config[:except].split(",").map(&:to_s)
+        target_load_balancers = target_load_balancers.reject {|lb| exclude.include? lb[:id].to_s}
       end
 
       if target_load_balancers.empty?
@@ -106,20 +106,21 @@ module KnifePlugins
       end
 
       ui.output(format_for_display({
-        :targets => target_load_balancers,
+        :targets => target_load_balancers.map {|lb| lb[:name]},
         :nodes => nodes
       }))
 
       unless config[:force]
-        ui.confirm("Do you really want to add these nodes?")
+        ui.confirm("Do you really want to add these nodes")
       end
 
       target_load_balancers.each do |lb|
-        ui.output("Opening #{lb.name}")
+        ui.output("Opening #{lb[:name]}")
+        balancer = lb_connection.get_load_balancer(lb[:id])
 
         nodes.each do |node|
-          ui.output("Adding node #{node[:ip]}")
-          if lb.create_node(node)
+          ui.output("Adding node #{node[:address]}")
+          if balancer.create_node(node)
             ui.output(ui.color("Success", :green))
           else
             ui.output(ui.color("Failed", :red))
@@ -131,4 +132,3 @@ module KnifePlugins
     end
   end
 end
-

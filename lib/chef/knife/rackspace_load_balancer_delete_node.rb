@@ -5,12 +5,12 @@ require 'chef/knife/rackspace_load_balancer_nodes'
 require 'cloudlb'
 
 module KnifePlugins
-  class RackspaceLoadBalancerRemoveNode < Chef::Knife
+  class RackspaceLoadBalancerDeleteNode < Chef::Knife
     include Chef::Knife::RackspaceBase
     include Chef::Knife::RackspaceLoadBalancerBase
     include Chef::Knife::RackspaceLoadBalancerNodes
 
-    banner "knife rackspace load balancer remove node (options)"
+    banner "knife rackspace load balancer delete node (options)"
 
     option :force,
       :long => "--force",
@@ -60,12 +60,7 @@ module KnifePlugins
       })
 
       nodes = node_ips.map do |ip|
-        {
-          :address => ip,
-          :port => config[:port],
-          :condition => config[:condition],
-          :weight => config[:weight]
-        }
+        { :address => ip }
       end
 
       if nodes.empty?
@@ -76,13 +71,13 @@ module KnifePlugins
       target_load_balancers = lb_connection.list_load_balancers
 
       if config[:only]
-        only = config[:only].split(",")
-        target_load_balancers = target_load_balancers.select {|lb| lb.id == id}
+        only = config[:only].split(",").map(&:to_s)
+        target_load_balancers = target_load_balancers.select {|lb| only.include? lb[:id].to_s}
       end
 
       if config[:except]
-        except = config[:except].split(",")
-        target_load_balancers = target_load_balancers.reject {|lb| lb.id == id}
+        except = config[:except].split(",").map(&:to_s)
+        target_load_balancers = target_load_balancers.reject {|lb| exclude.include? lb[:id].to_s}
       end
 
       if target_load_balancers.empty?
@@ -91,24 +86,26 @@ module KnifePlugins
       end
 
       ui.output(format_for_display({
-        :targets => target_load_balancers,
+        :targets => target_load_balancers.map {|lb| lb[:name]},
         :nodes => nodes
       }))
 
       unless config[:force]
-        ui.confirm("Do you really want to remove these nodes?")
+        ui.confirm("Do you really want to remove these nodes")
       end
 
       target_load_balancers.each do |lb|
-        ui.output("Opening #{lb.name}")
+        ui.output("Opening #{lb[:name]}")
+        balancer = lb_connection.get_load_balancer(lb[:id])
 
-        nodes.each do |node|
-          ui.output("Removing node #{node[:ip]}")
-          if lb_node = lb.get_node(node) && lb_node.destroy!
-            ui.output(ui.color("Success", :green))
-          else
-            # node.destroy! would raise an exception
-            ui.output(ui.color("Failed", :red))
+        lb_nodes = balancer.list_nodes
+        lb_nodes.each do |lb_node_hash|
+          if node_ips.include? lb_node_hash[:address].to_s
+            lb_node = balancer.get_node(lb_node_hash[:id])
+            ui.output("Removing node #{lb_node.address}")
+            if lb_node.destroy!
+              ui.output(ui.color("Success", :green))
+            end
           end
         end
       end
