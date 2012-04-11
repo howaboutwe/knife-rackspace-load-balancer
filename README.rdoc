@@ -1,10 +1,33 @@
-gem build knife-rackspace-loadbalancer.gemspec
+==Local dev:
+
+  gem build knife-rackspace-loadbalancer.gemspec
 
 In a scratch directory:
-Gemfile ->
+
+  #Gemfile
   gem "knife-rackspace-loadbalancer", :path => "/path/to/gem/file/produced.gem"
 
-bundle install
-bundle exec knife rackspace load balancer list
-bundle exec knife rackspace load balancer show ID
-bundle exec knife rackspace load balancer show ID --resolve-node-names
+  $>bundle install
+  $>bundle exec knife rackspace load balancer list
+
+
+
+List:
+  bundle exec knife rackspace load balancer list
+
+Show:
+  bundle exec knife rackspace load balancer show <load_balancer_id>
+  bundle exec knife rackspace load balancer show <load_balancer_id> <load_balancer_id> --resolve-node-names
+
+Create:
+  bundle exec knife rackspace load balancer create "some.site.com" --port 80 --node-port 80 --add-nodes-by-name "app1,app2" --algorithm RANDOM
+
+Delete:
+  bundle exec knife rackspace load balancer delete <load_balancer_id>
+
+Add Node:
+  bundle exec knife rackspace load balancer add node --by-name "app1" --port 80 --only "<load_balancer_id>,<load_balancer_id>"
+  bundle exec knife rackspace load balancer add node --by-name "app1,app2" --auto-resolve-port --except "<load_balancer_id>"
+
+Delete Node:
+  bundle exec knife rackspace load balancer delete node --by-search "chef_environment:staging AND name:staging-app" --all
