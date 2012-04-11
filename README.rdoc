@@ -1,5 +1,4 @@
-==Local dev:
-
+==Local
   gem build knife-rackspace-loadbalancer.gemspec
 
 In a scratch directory:
@@ -11,7 +10,7 @@ In a scratch directory:
   $>bundle exec knife rackspace load balancer list
 
 
-
+==Commands
 List:
   bundle exec knife rackspace load balancer list
 
