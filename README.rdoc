@@ -1,15 +1,3 @@
-==Local
-  gem build knife-rackspace-loadbalancer.gemspec
-
-In a scratch directory:
-
-  #Gemfile
-  gem "knife-rackspace-loadbalancer", :path => "/path/to/gem/file/produced.gem"
-
-  $>bundle install
-  $>bundle exec knife rackspace load balancer list
-
-
 ==Commands
 List:
   bundle exec knife rackspace load balancer list
@@ -30,3 +18,6 @@ Add Node:
 
 Delete Node:
   bundle exec knife rackspace load balancer delete node --by-search "chef_environment:staging AND name:staging-app" --all
+
+== Copyright
+Copyright (c) 2012 HowAboutWe. See LICENSE.txt for further details.
