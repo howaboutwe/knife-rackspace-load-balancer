@@ -1,3 +1,8 @@
+==Setup
+Add region to your knife configuration:
+  #knife.rb
+  knife[:rackspace_api_region] = "ord"
+
 ==Commands
 List:
   bundle exec knife rackspace load balancer list
