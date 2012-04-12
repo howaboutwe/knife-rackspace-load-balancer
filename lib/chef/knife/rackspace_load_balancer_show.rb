@@ -24,6 +24,7 @@ module KnifePlugins
 
         load_balancer_info = {
           :name => load_balancer.name,
+          :id => load_balancer.id,
           :protocol => load_balancer.protocol,
           :port => load_balancer.port,
           :status => ui.color(load_balancer.status, load_balancer.status == "ACTIVE" ? :green : :red)

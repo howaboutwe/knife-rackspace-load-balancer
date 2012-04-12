@@ -121,6 +121,8 @@ module KnifePlugins
       target_load_balancers.each do |lb|
         ui.output("Opening #{lb[:name]}")
         balancer = lb_connection.get_load_balancer(lb[:id])
+        lb_nodes = balancer.list_nodes
+        lb_node_ips = lb_nodes.map {|lbn| lbn[:address]}
 
         if config[:auto_resolve_port]
           nodes_for_balancer = nodes.dup
@@ -136,11 +138,15 @@ module KnifePlugins
         end
 
         nodes_for_balancer.each do |node|
-          ui.output("Adding node #{node[:address]}")
-          if balancer.create_node(node)
-            ui.output(ui.color("Success", :green))
+          if lb_node_ips.include?(node[:address])
+            ui.warn("Skipping node #{node[:address]}")
           else
-            ui.output(ui.color("Failed", :red))
+            ui.output("Adding node #{node[:address]}")
+            if balancer.create_node(node)
+              ui.output(ui.color("Success", :green))
+            else
+              ui.output(ui.color("Failed", :red))
+            end
           end
         end
       end
