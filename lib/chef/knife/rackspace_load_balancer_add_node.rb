@@ -119,35 +119,39 @@ module KnifePlugins
       end
 
       target_load_balancers.each do |lb|
-        ui.output("Opening #{lb[:name]}")
-        balancer = lb_connection.get_load_balancer(lb[:id])
-        lb_nodes = balancer.list_nodes
-        lb_node_ips = lb_nodes.map {|lbn| lbn[:address]}
+        begin
+          ui.output("Opening #{lb[:name]}")
+          balancer = lb_connection.get_load_balancer(lb[:id])
+          lb_nodes = balancer.list_nodes
+          lb_node_ips = lb_nodes.map {|lbn| lbn[:address]}
 
-        if config[:auto_resolve_port]
-          nodes_for_balancer = nodes.dup
+          if config[:auto_resolve_port]
+            nodes_for_balancer = nodes.dup
 
-          port = balancer.list_nodes.first[:port]
-          ui.output(ui.color("Auto resolved port to: #{port}", :cyan))
+            port = lb_nodes.first[:port]
+            ui.output(ui.color("Auto resolved port to: #{port}", :cyan))
 
-          nodes_for_balancer.each do |nfb|
-            nfb[:port] = port
-          end
-        else
-          nodes_for_balancer = nodes
-        end
-
-        nodes_for_balancer.each do |node|
-          if lb_node_ips.include?(node[:address])
-            ui.warn("Skipping node #{node[:address]}")
+            nodes_for_balancer.each do |nfb|
+              nfb[:port] = port
+            end
           else
-            ui.output("Adding node #{node[:address]}")
-            if balancer.create_node(node)
-              ui.output(ui.color("Success", :green))
+            nodes_for_balancer = nodes
+          end
+
+          nodes_for_balancer.each do |node|
+            if lb_node_ips.include?(node[:address])
+              ui.warn("Skipping node #{node[:address]}")
             else
-              ui.output(ui.color("Failed", :red))
+              ui.output("Adding node #{node[:address]}")
+              if balancer.create_node(node)
+                ui.output(ui.color("Success", :green))
+              else
+                ui.output(ui.color("Failed", :red))
+              end
             end
           end
+        rescue CloudLB::Exception::Other => e
+          ui.error("Failed on #{lb[:name]}: CloudLB::Exception [#{e.class.name}] - #{e.message}")
         end
       end
 
