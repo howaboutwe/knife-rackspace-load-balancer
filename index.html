@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <title>knife-rackspace-load-balancer by howaboutwe</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>knife-rackspace-load-balancer</h1>
+        <h2></h2>
+
+        <section id="downloads">
+          <a href="https://github.com/howaboutwe/knife-rackspace-load-balancer/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/howaboutwe/knife-rackspace-load-balancer/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/howaboutwe/knife-rackspace-load-balancer" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <h3>Setup</h3>
+
+<p>Add region to your knife configuration:</p>
+
+<p><code>#knife.rb</code></p>
+
+<p><code>knife[:rackspace_api_region] = "ord"</code></p>
+
+<h3>Commands</h3>
+
+<p>List:</p>
+
+<p><code>bundle exec knife rackspace load balancer list</code></p>
+
+<p>Show:</p>
+
+<p><code>bundle exec knife rackspace load balancer show &lt;load_balancer_id&gt;</code></p>
+
+<p><code>bundle exec knife rackspace load balancer show &lt;load_balancer_id&gt; &lt;load_balancer_id&gt; --resolve-node-names</code></p>
+
+<p>Create:</p>
+
+<p><code>bundle exec knife rackspace load balancer create "some.site.com" --port 80 --node-port 80 --add-nodes-by-name "app1,app2" --algorithm RANDOM</code></p>
+
+<p>Delete:</p>
+
+<p><code>bundle exec knife rackspace load balancer delete &lt;load_balancer_id&gt;</code></p>
+
+<p>Add Node:</p>
+
+<p><code>bundle exec knife rackspace load balancer add node --by-name "app1" --port 80 --only "&lt;load_balancer_id&gt;,&lt;load_balancer_id&gt;"</code></p>
+
+<p><code>bundle exec knife rackspace load balancer add node --by-name "app1,app2" --auto-resolve-port --except "&lt;load_balancer_id&gt;"</code></p>
+
+<p>Delete Node:</p>
+
+<p><code>bundle exec knife rackspace load balancer delete node --by-search "chef_environment:staging AND name:staging-app" --all</code></p>
+
+<h3>Copyright</h3>
+
+<p>Copyright (c) 2012 HowAboutWe. See LICENSE.txt for further details.</p>
+      </section>
+    </div>
+
+    
+  </body>
+</html>
