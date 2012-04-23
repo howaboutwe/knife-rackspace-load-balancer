@@ -95,18 +95,23 @@ module KnifePlugins
       end
 
       target_load_balancers.each do |lb|
-        ui.output("Opening #{lb[:name]}")
-        balancer = lb_connection.get_load_balancer(lb[:id])
+        begin
+          ui.output("Opening #{lb[:name]}")
+          balancer = lb_connection.get_load_balancer(lb[:id])
 
-        lb_nodes = balancer.list_nodes
-        lb_nodes.each do |lb_node_hash|
-          if node_ips.include? lb_node_hash[:address].to_s
-            lb_node = balancer.get_node(lb_node_hash[:id])
-            ui.output("Removing node #{lb_node.address}")
-            if lb_node.destroy!
-              ui.output(ui.color("Success", :green))
+          lb_nodes = balancer.list_nodes
+          lb_nodes.each do |lb_node_hash|
+            if node_ips.include? lb_node_hash[:address].to_s
+              lb_node = balancer.get_node(lb_node_hash[:id])
+              ui.output("Removing node #{lb_node.address}")
+              if lb_node.destroy!
+                ui.output(ui.color("Success", :green))
+              end
             end
           end
+
+        rescue CloudLB::Exception::Other => e
+          ui.error("Failed on #{lb[:name]}: CloudLB::Exception [#{e.class.name}] - #{e.message}")
         end
       end
 
