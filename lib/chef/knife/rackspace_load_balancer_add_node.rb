@@ -138,17 +138,18 @@ module KnifePlugins
             nodes_for_balancer = nodes
           end
 
-          nodes_for_balancer.each do |node|
-            if lb_node_ips.include?(node[:address])
-              ui.warn("Skipping node #{node[:address]}")
-            else
-              ui.output("Adding node #{node[:address]}")
-              if balancer.create_node(node)
-                ui.output(ui.color("Success", :green))
-              else
-                ui.output(ui.color("Failed", :red))
-              end
-            end
+          already_there = nodes_for_balancer.select do |node|
+            lb_node_ips.include?(node[:address])
+          end
+          if !already_there.empty?
+            existing_names = already_there.map { |node| node[:address] }
+            ui.warn "Already in load balancer - skipping: #{existing_names.join(', ')}"
+          end
+          nodes_for_balancer -= already_there
+
+          unless nodes_for_balancer.empty?
+            ui.output("Adding #{nodes_for_balancer.size} node(s) to #{lb[:name]}...")
+            response = balancer.create_nodes(nodes_for_balancer)
           end
         rescue CloudLB::Exception::Other => e
           ui.error("Failed on #{lb[:name]}: CloudLB::Exception [#{e.class.name}] - #{e.message}")
