@@ -100,16 +100,25 @@ module KnifePlugins
           balancer = lb_connection.get_load_balancer(lb[:id])
 
           lb_nodes = balancer.list_nodes
-          lb_nodes.each do |lb_node_hash|
-            if node_ips.include? lb_node_hash[:address].to_s
-              lb_node = balancer.get_node(lb_node_hash[:id])
-              ui.output("Removing node #{lb_node.address}")
-              if lb_node.destroy!
-                ui.output(ui.color("Success", :green))
-              end
+
+          nodes_to_remove = []
+          already_removed = []
+          nodes.each do |node|
+            if (lb_node = lb_nodes.find{|lb_node| lb_node[:address] == node[:address]})
+              nodes_to_remove << lb_node
+            else
+              already_removed << node
             end
           end
+          if !already_removed.empty?
+            removed_names = already_removed.map { |node| node[:address] }
+            ui.warn "Already out of load balancer - skipping: #{removed_names.join(', ')}"
+          end
 
+          unless nodes_to_remove.empty?
+            ui.output("Removing #{nodes_to_remove.size} node(s) from #{lb[:name]}")
+            balancer.destroy_nodes(nodes_to_remove)
+          end
         rescue CloudLB::Exception::Other => e
           ui.error("Failed on #{lb[:name]}: CloudLB::Exception [#{e.class.name}] - #{e.message}")
         end
