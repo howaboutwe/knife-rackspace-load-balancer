@@ -14,5 +14,6 @@ Gem::Specification.new do |s|
   s.add_dependency "chef", ">= 0.10.8"
   s.add_dependency "knife-rackspace", "~> 0.6.0"
   s.add_dependency "cloudlb", "~> 0.1.0"
+  s.add_dependency "typhoeus", "~> 0.4.2"
   s.require_paths = ["lib"]
 end
